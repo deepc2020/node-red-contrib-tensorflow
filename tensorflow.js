@@ -46,7 +46,7 @@ module.exports = function (RED) {
                 pureimage.decodePNGFromStream(rsb).then(function (image) {
                     var cv = pureimage.make(image.width, image.height);
                     cv.getContext('2d').drawImage(image, 0, 0);
-                    modelCocossd.detect(cv).then(function (result) {
+                    modelCocossd.detect(cv,20,0.3).then(function (result) {
                         msg.details = result;
                         if (0 < result.length) {
                             msg.payload = result[0].class
