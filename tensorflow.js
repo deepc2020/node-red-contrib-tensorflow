@@ -46,6 +46,8 @@ module.exports = function (RED) {
                 pureimage.decodePNGFromStream(rsb).then(function (image) {
                     var cv = pureimage.make(image.width, image.height);
                     cv.getContext('2d').drawImage(image, 0, 0);
+                    
+                    // Detect: (Bild, Maximal erkannte Objekte, Schwellwert 0-1)
                     modelCocossd.detect(cv,20,0.3).then(function (result) {
                         msg.details = result;
                         if (0 < result.length) {
@@ -54,9 +56,15 @@ module.exports = function (RED) {
                             var ctx = cv2.getContext('2d');
                             ctx.drawImage(image, 0, 0);
                             ctx.strokeStyle = 'rgb(255, 111, 0)';
-                            ctx.strokeRect(result[0].bbox[0], result[0].bbox[1], result[0].bbox[2], result[0].bbox[3]);
-                            ctx.fillStyle = 'rgba(255, 111, 0, 0.5)';
-                            ctx.fillRect(result[0].bbox[0], result[0].bbox[1], result[0].bbox[2], result[0].bbox[3]);
+                            
+                            // Transparenz und Farbe der Boxfüllung
+                            ctx.fillStyle = 'rgba(255, 111, 0, 0.2)';
+                            
+                            result.forEach(element => {
+                                ctx.strokeRect(element.bbox[0], element.bbox[1], element.bbox[2], element.bbox[3]);
+                                ctx.fillRect(element.bbox[0], element.bbox[1], element.bbox[2], element.bbox[3]); 
+                            })
+                            
                             var wsb = new streamBuffers.WritableStreamBuffer({ initialSize: 1, incrementAmount: 1 });
                             pureimage.encodePNGToStream(cv2, wsb).then(function () {
                                 msg.annotatedInput = wsb.getContents();
